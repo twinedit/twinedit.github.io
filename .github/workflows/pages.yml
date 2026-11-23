@@ -1,0 +1,60 @@
+name: Deploy TwinEdit to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the public TwinEdit site snapshot
+        uses: actions/checkout@v6
+        with:
+          repository: cpeterz/twinedit-project
+          ref: c1de1f0872299bfc8520b9ff878900548359b1bc
+          path: site-source
+          persist-credentials: false
+
+      - name: Prepare the static site for its new URL
+        shell: bash
+        run: |
+          mkdir dist
+          git -C site-source archive HEAD | tar -xf - -C dist
+          python3 - <<'PY'
+          from pathlib import Path
+
+          homepage = Path('dist/index.html')
+          previous_url = b'https://cpeterz.github.io/twinedit-project/'
+          published_url = b'https://twinedit.github.io/'
+          contents = homepage.read_bytes()
+          if contents.count(previous_url) != 3:
+              raise SystemExit('Unexpected canonical and social URLs in the source snapshot')
+          homepage.write_bytes(contents.replace(previous_url, published_url))
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+          include-hidden-files: true
+
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
