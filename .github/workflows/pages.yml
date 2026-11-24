@@ -45,7 +45,7 @@ jobs:
               raise SystemExit('Unexpected canonical and social URLs in the source snapshot')
           homepage.write_bytes(contents.replace(previous_url, published_url))
           Path('dist/googleef32f673ae7c464a.html').write_text('google-site-verification: googleef32f673ae7c464a.html' + chr(10), encoding='utf-8')
-          Path('dist/3ecaf1d6a92d4aaf9f5a75cb8f540f77.txt').write_text('3ecaf1d6a92d4aaf9f5a75cb8f540f77' + chr(10), encoding='utf-8')
+          Path('dist/BingSiteAuth.xml').write_text("<?xml version=\"1.0\"?>\n<users>\n\t<user>112498EA74FAD3C0DBAA964822F447DB</user>\n</users>", encoding='utf-8')
           PY
 
       - name: Configure GitHub Pages
